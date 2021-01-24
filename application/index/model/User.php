@@ -17,14 +17,8 @@ class User extends Model{
 
     //用户状态获取器
     public function getStatusAttr($value){
-        $status = ['1'=>'启用', '0'=>'禁用'];
+        $status = ['1'=>'启用', '2'=>'禁用'];
         return $status[$value];
-    }
-
-    //用户性别获取器
-    public function getSexAttr($value){
-        $sex = ['1'=>'男', '0'=>'女'];
-        return $sex[$value];
     }
 
     //用户密码修改器

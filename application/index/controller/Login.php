@@ -111,16 +111,10 @@ class Login extends Th{
                 'email'   => 'email',
                 'unique'  => 'user'
             ],
-            'phone|手机号码'=>[
-                'require' => 'require',
-                'mobile'  => 'mobile',
-                'unique'  => 'user'
-            ],
             'password|密码'=>[
                 'require' => 'require',
                 'min'     => '6',
                 'max'     => '20',
-                'alphaNum' => 'alphaNum',                //仅允许数字和字母
                 'confirm' => 'confirm_password'
             ]
         ];
