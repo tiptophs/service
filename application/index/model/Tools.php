@@ -24,17 +24,27 @@ class Tools extends Model
     protected $updateTime = 'update_time'; //更新时间字段
     protected $dateFormat = 'Y-m-d H:i:s'; //时间字段取出后的默认时间格式
 
-    //用户状态获取器
+    //状态获取器
     public function getStatusAttr($value)
     {
-        $status = ['1' => '启用', '0' => '禁用'];
+        $status = ['1' => '启用', '2' => '禁用'];
         return $status[$value];
+    }
+
+    public function getModeAttr($value)
+    {
+        return json_decode($value, true);
+    }
+
+    public function getTypeAttr($value)
+    {
+        return json_decode($value, true);
     }
 
      //用户状态获取器
     //  public function getDeliveryAttr($value)
     //  {
-    //      $status = ['1' => '私密', '0' => '共享'];
+    //      $status = ['1' => '公开', '2' => '私密'];
     //      return $status[$value];
     //  }
 }

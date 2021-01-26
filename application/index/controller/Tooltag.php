@@ -2,114 +2,54 @@
 namespace app\index\controller;
 
 use app\common\controller\Th;
-use app\index\model\ToolItems;
-use app\index\model\Tools;
 use think\facade\Request;
 use think\facade\Session;
 use think\facade\Validate;
+use app\index\model\Tag;
 
-class Tool extends Th
+class Tooltag extends Th
 {
 
     /**
-     * 获取首页资源工具数据
-     *
-     * @return void
-     * @Description
-     * @example
-     * @author tiptop
-     * @since
+     * 获取分类下标签列表
      */
-    public function getTools()
+    public function getTags()
     {
         //设置数据的默认返回值
-        $ret = array('code' => 20000, 'prompt' => '', 'data' => array());
-
+        $ret = array('code' => 20000, 'prompt' => '', 'value' => array());
         //查询当前用户登陆状态,没有用户选择创建者
         $uid = app()->user['uid'];
-
+        $type = Request::param('type');
         //获取所有的工具项
-        $tools = Tools::where('uid', $uid)->all();
-        // 对数据集进行遍历操作
-        foreach ($tools as $key => $tool) {
-            $item = array();
-            //存储工具项名称
-            $item['title'] = $tool['title'];
-            $item['item'] = array();
-
-            $toolItems = ToolItems::where(['type' => $tool['sid'], 'uid' => '8AC4E8DG918B1'])->all();
-            //循环数据
-            foreach ($toolItems as $index => $ti) {
-                $tool_item = array();
-                $tool_item['img'] = $ti['img'];
-                $tool_item['desc'] = $ti['title'];
-                $tool_item['href'] = $ti['url'];
-                array_push($item['item'], $tool_item);
-            }
-
-            array_push($ret['data'], $item);
-        }
-        return json($ret);
+        $tags = Tag::where(['uid'=>$uid, 'tid'=>$type] )->all();
+        // 赋值
+        $ret['value'] = $tags;
+        //返回数据结果
+        return Th::response($ret);
     }
 
     /**
-     * 获取我的技能分类数据
-     *
-     * @return void
-     * @Description
-     * @example
-     * @author tiptop
-     * @since
+     * 添加分类下标签的方法
      */
-    public function getSkills()
-    {
-        $ret = array('code' => 20000, 'prompt' => '', 'data'=>'');
-        $tools = array(
-            ['title' => 'Git/SVN/集中式、分布式版本控制系统', 'desc' => '版本控制系统，当然最先学习的就是git啦，毋庸置疑的好！', 'sid' => '1'],
-            ['title' => 'Php/ThinkPhp/CI/后台服务', 'desc' => 'php语言，php框架都是开发后台服务不可缺少的部分！当然php是世界上最好的语言。滑稽！', 'sid' => '2'],
-            ['title' => 'Bootstrap/响应式布局框架', 'desc' => '前台最流行的模版框架，其他框架都或多或少的借鉴与他！好好学习他没错！', 'sid' => '3'],
-            ['title' => 'Vue.js/React/Angular前台编程框架', 'desc' => '不用细说,react/vue/angular前段程序员必学，时代在发展。当然jquery库也不能放弃！', 'sid' => '4'],
-            ['title' => 'Python/scrapy相关爬虫技术', 'desc' => 'python爬虫有多火，不用多解释了吧！骚年，任务繁重啊！', 'sid' => '5'],
-            ['title' => 'Mysql/Redis/MongoDb/数据库相关', 'desc' => '数据库优化,非关系型数据库，数据并发，海量数据读取...', 'sid' => '6'],
-            ['title' => 'NodeJs/ES6/javascript/Jquery相关', 'desc' => '前端也应该学习下nodejs，有了它后充当后台服务，前端也可以开发完成项目了。', 'sid' => '7'],
-        );
-        $ret['data'] = $tools;
-        return json($ret);
-    }
-
-    /**
-     * 添加工具项方法
-     *
-     * @return void
-     * @Description
-     * @example
-     * @author user
-     * @since
-     * @return $string json
-     */
-    public function addTools()
+    public function addTag()
     {
         //设置数据的默认返回值
         $ret = array('status' => true, 'prompt' => '', 'value' => '');
         //获取提交的所有数据
-        $tool = Request::param();
-
+        $tag = Request::param();
         //验证提交的数据
-        $check = $this->checkAddTools($tool);
+        $check = $this->checkAddTag($tag);
         if ($check['status']) {
             //添加数组到额外数据
-            $tool['uid'] = app()->user['uid'];
-            $tool['delivery'] = $tool['delivery']? 1 : 0; //启用
-            $tool['type'] = json_encode($tool['type']);
-            $tool['mode'] = json_encode($tool['mode']); 
-            $tool['status'] = 1; //启用
+            $tag['uid'] = app()->user['uid'];
+            $tag['tid'] = $tag['type']; 
             //添加数据
-            $addTool = Tools::create($tool);
-            if (!$addTool) {
+            $addTag = Tag::create($tag);
+            if (!$addTag) {
                 $ret['status'] = false;
                 $ret['prompt'] = '数据添加失败...';
             } else {
-                $ret['value'] = $addTool;
+                $ret['value'] = $addTag;
             }
             //返回数据结果
             return Th::response($ret);
@@ -220,11 +160,11 @@ class Tool extends Th
     }
 
     //+-----------------------------------
-    //|  分类下相关链接的添加
+    //|  工具项下子元素部分
     //+-----------------------------------
 
     /**
-     * 添加链接
+     * 添加工具
      *
      * @return void
      * @Description
@@ -232,29 +172,29 @@ class Tool extends Th
      * @author user
      * @since
      */
-    public function addToolItem()
+    public function addItemTool()
     {
         //设置默认数据返回值
         $ret = array('status' => true, 'prompt' => '', 'value' => '');
+
         //获取数据
-        $toolItem = Request::param();
-        $check = $this->checkToolItem($toolItem);
+        $tool = Request::param();
+        $check = $this->checkItemTool($tool);
+
         if (!$check['status']) {
             $ret['status'] = false;
             $ret['prompt'] = $check['message'];
-            return Th::response($ret);
         };
-        // 获取存储信息
-        $toolItem['uid'] = app()->user['uid'];
-        $toolItem['tags'] = json_encode($toolItem['tags']);
-        $addItem = ToolItems::create($toolItem);
+
+        $tool['uid'] = Session::get('user')['uid'];
+        $addItem = ToolItems::create($tool);
         if ($addItem) {
             $ret['value'] = $addItem;
         } else {
             $ret['status'] = false;
             $ret['prompt'] = '数据添加失败...';
         }
-        return Th::response($ret);
+        return json($ret);
     }
 
     /**
@@ -277,12 +217,9 @@ class Tool extends Th
             return Th::response($ret);
         }
 
-        // 获取工具类详情
-        $toolInfo = Tools::where([
-            'uid' => $uid = app()->user['uid'],
-            'sid' => $type])->find();
+        $toolInfo = Tools::get($type);
+        ToolItems::get($type);
 
-        // 获取工具类下链接列表
         $totalNum = 0; //总条目数
         //$perTotalNum = isset($data['perTotalNum']) ? $data['perTotalNum'] : 5; //每页显示多少条
         //$currentPage = isset($data['currentPage']) ? $data['currentPage'] : 1; //当前也码数
@@ -292,11 +229,13 @@ class Tool extends Th
         //$totalNum = count(Article::all());
         $list = ToolItems::where([
             'uid' => $uid = app()->user['uid'],
-            'tid' => $type])
+            'type' => $type])
         //->limit($currentNum, $perTotalNum)
             ->order('create_time', 'desc')
             ->all();
+
         $ret['value'] = array('totalNum' => $totalNum, 'tools' => $list, 'info' => $toolInfo );
+
         return Th::response($ret);
     }
 
@@ -338,14 +277,14 @@ class Tool extends Th
      * @param $data
      * @return array
      */
-    protected function checkAddTools($data)
+    protected function checkAddTag($data)
     {
         //设置返回数组
         $ret = array('status' => true);
 
         //定义验证字段
         $rule = [
-            'title|工具项名称' => [
+            'title|标签名称' => [
                 'require' => 'require',
                 'max' => '60',
             ],
@@ -366,21 +305,24 @@ class Tool extends Th
      * @param $data
      * @return array
      */
-    protected function checkToolItem($data)
+    protected function checkItemTool($data)
     {
         //设置返回数组
         $ret = array('status' => true);
 
         //定义验证字段
         $rule = [
-            'title|链接名称' => [
+            'title|名称' => [
                 'require' => 'require',
                 'max' => '60',
             ],
-            'type|可选类型' => [
+            'type|工具项' => [
                 'require' => 'require',
             ],
-            'address|链接地址' => [
+            'img|图片' => [
+                'require' => 'require',
+            ],
+            'url|地址' => [
                 'require' => 'require',
             ],
         ];

@@ -4,11 +4,11 @@ namespace app\index\model;
 
 use think\Model;
 
-class ToolItems extends Model
+class Tag extends Model
 {
 
     protected $pk = 'sid'; //默认主键
-    protected $table = 'so_tool_items'; //默认数据表
+    protected $table = 'so_tags'; //默认数据表
 
     protected $autoWriteTimestamp = 'datetime'; //开启自动时间戳，并且设置为datetime格式
 
@@ -16,9 +16,4 @@ class ToolItems extends Model
     protected $updateTime = 'update_time'; //更新时间字段
     protected $dateFormat = 'Y-m-d H:i:s'; //时间字段取出后的默认时间格式
 
-    // 获取数据之前的转化器
-    public function getTagsAttr($value)
-    {
-        return json_decode($value, true);
-    }
 }
